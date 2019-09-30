@@ -6,16 +6,17 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import ee.bizware.kotlin_homework_android_app.dto.Coordinates
+import ee.bizware.kotlin_homework_android_app.dto.*
 import kotlinx.android.synthetic.main.activity_main.*
-import ee.bizware.kotlin_homework_android_app.dto.Post
 
 class MainActivity : AppCompatActivity() {
 
+    private var post: Post = Post()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        val firstPost = Post(
+
+        post = EventPost(
             author = "Братья Гамбс",
             content = "Этим полукреслом мастер Гамбс начинает новую партию мебели",
             createdTimeStamp = 1567770000,
@@ -26,57 +27,69 @@ class MainActivity : AppCompatActivity() {
             quantityOfComments = 1,
             quantityOfShares = 1,
             address = "Mulla 1, 10611 Tallinn",
-            place = Coordinates(59.434988F, 24.717758F),
-            videoUrl = "https://www.youtube.com/watch?v=NApLB4AhaLM"
+            place = Coordinates(59.434988F, 24.717758F)
         )
-        val currentMoment = System.currentTimeMillis()/1000
-        created.text = timeInSecondsToString(currentMoment - firstPost.createdTimeStamp)
-        author.text = firstPost.author
-        content.text = firstPost.content
-        //
-        locationButton.visibility = if (firstPost.address == "") View.GONE else View.VISIBLE
-        //
-        videoLogo.visibility = if (firstPost.videoUrl == "") View.GONE else View.VISIBLE
+/*
+        post = VideoPost(
+            author = "Собачка Лотте",
+            content = "Новый трейлер",
+            createdTimeStamp = 1567770000,
+            commentedByMe = true,
+            quantityOfLikes = 7,
+            quantityOfComments = 12,
+            videoUrl = "https://youtu.be/NApLB4AhaLM"
+        )
+*/
+        setContentView(R.layout.activity_main)
+        updatePost()
+
         //
         likeButton.setOnClickListener{
-            firstPost.likedByMe = !firstPost.likedByMe
-            firstPost.quantityOfLikes = firstPost.quantityOfLikes + ( if (firstPost.likedByMe) 1 else -1 )
-            updateLike(firstPost)
+            post = post.copy(
+                likedByMe = !post.likedByMe,
+                quantityOfLikes = post.quantityOfLikes + ( if (post.likedByMe) -1 else 1 )
+            )
+            updatePost()
         }
         //
         commentButton.setOnClickListener{
-            firstPost.commentedByMe = !firstPost.commentedByMe
-            firstPost.quantityOfComments = firstPost.quantityOfComments + ( if (firstPost.commentedByMe) 1 else -1 )
-            updateComment(firstPost)
+            post = post.copy(
+                commentedByMe = !post.commentedByMe,
+                quantityOfComments = post.quantityOfComments + ( if (post.commentedByMe) -1 else 1 )
+            )
+            updatePost()
         }
         //
         shareButton.setOnClickListener{
-            firstPost.sharedByMe = !firstPost.sharedByMe
-            firstPost.quantityOfShares = firstPost.quantityOfShares + ( if (firstPost.sharedByMe) 1 else -1 )
-            updateShare(firstPost)
+            post = post.copy(
+                sharedByMe = !post.sharedByMe,
+                quantityOfShares = post.quantityOfShares + ( if (post.sharedByMe) -1 else 1 )
+            )
+            updatePost()
         }
         //
         locationButton.setOnClickListener{
-            val lat = firstPost.place.lat
-            val lng = firstPost.place.lng
-            val intent = Intent().apply {
-                action = Intent.ACTION_VIEW
-                data = Uri.parse("geo:$lat,$lng")
+            if ( post is EventPost) {
+                val lat = post.place.lat
+                val lng = post.place.lng
+                val intent = Intent().apply {
+                    action = Intent.ACTION_VIEW
+                    data = Uri.parse("geo:$lat,$lng")
+                }
+                startActivity(intent)
             }
-            startActivity(intent)
         }
         //
         videoLogo.setOnClickListener{
-            val videoUrl = firstPost.videoUrl
-            val intent = Intent().apply {
-                action = Intent.ACTION_VIEW
-                data = Uri.parse(videoUrl)
+            if ( post is VideoPost ) {
+                val videoUrl = post.videoUrl
+                val intent = Intent().apply {
+                    action = Intent.ACTION_VIEW
+                    data = Uri.parse(videoUrl)
+                }
+                startActivity(intent)
             }
-            startActivity(intent)
         }
-        updateLike(firstPost)
-        updateComment(firstPost)
-        updateShare(firstPost)
     }
 
     private fun timeInSecondsToString(sec : Long = 0) : String {
@@ -101,7 +114,7 @@ class MainActivity : AppCompatActivity() {
         return publishedAgo
     }
 
-    private fun updateLike(post: Post){
+    private fun updatePost(){
         likeButton.setImageResource(
             if (post.likedByMe) R.drawable.ic_favorite_active_24dp
             else R.drawable.ic_favorite_inactive_24dp
@@ -114,9 +127,7 @@ class MainActivity : AppCompatActivity() {
             quantityOfLikes.visibility = View.VISIBLE
             quantityOfLikes.text = post.quantityOfLikes.toString()
         }
-    }
 
-    private fun updateComment(post: Post){
         commentButton.setImageResource(
             if (post.commentedByMe) R.drawable.ic_comment_active_24dp
             else R.drawable.ic_comment_inactive_24dp
@@ -129,9 +140,7 @@ class MainActivity : AppCompatActivity() {
             quantityOfComments.visibility = View.VISIBLE
             quantityOfComments.text = post.quantityOfComments.toString()
         }
-    }
 
-    private fun updateShare(post: Post){
         shareButton.setImageResource(
             if (post.sharedByMe) R.drawable.ic_share_active_24dp
             else R.drawable.ic_share_inactive_24dp
@@ -144,5 +153,14 @@ class MainActivity : AppCompatActivity() {
             quantityOfShares.visibility = View.VISIBLE
             quantityOfShares.text = post.quantityOfShares.toString()
         }
+
+        val currentMoment = System.currentTimeMillis()/1000
+        created.text = timeInSecondsToString(currentMoment - post.createdTimeStamp)
+        author.text = post.author
+        content.text = post.content
+        //
+        locationButton.visibility = if ( (post is EventPost) && (post.address != "") ) View.VISIBLE else View.GONE
+        //
+        videoLogo.visibility = if ( (post is VideoPost) && ( post.videoUrl != "") ) View.VISIBLE else View.GONE
     }
 }
