@@ -1,31 +1,65 @@
 package ee.bizware.kotlin_homework_android_app.dto
 
-open class Post(
-    val author: String = "",
-    val content: String = "",
-    val createdTimeStamp: Int = 0,
+interface Post {
+    val author: String
+    val content: String
+    val createdTimeStamp: Int
     //
-    val likedByMe: Boolean = false,
-    val commentedByMe: Boolean = false,
-    val sharedByMe: Boolean = false,
+    val likedByMe: Boolean
+    val commentedByMe: Boolean
+    val sharedByMe: Boolean
     //
-    val quantityOfLikes: Int = 0,
-    val quantityOfComments: Int = 0,
-    val quantityOfShares: Int = 0
-){
-    fun copy(
-        author: String = this.author,
-        content: String = this.content,
-        createdTimeStamp: Int = this.createdTimeStamp,
-        likedByMe: Boolean = this.likedByMe,
-        commentedByMe: Boolean = this.commentedByMe,
-        sharedByMe: Boolean = this.sharedByMe,
-        quantityOfLikes: Int = this.quantityOfLikes,
-        quantityOfComments: Int = this.quantityOfComments,
-        quantityOfShares: Int = this.quantityOfShares
-    ): Post{
-        return Post(author, content, createdTimeStamp, likedByMe, commentedByMe, sharedByMe, quantityOfLikes, quantityOfComments, quantityOfShares)
-    }
+    val quantityOfLikes: Int
+    val quantityOfComments: Int
+    val quantityOfShares: Int
+}
+
+fun Post.toggleLikes(): Post = when (this) {
+    is SimplePost -> copy (
+        likedByMe = !likedByMe,
+        quantityOfLikes = quantityOfLikes + ( if (likedByMe) -1 else 1 )
+    )
+    is EventPost -> copy (
+        likedByMe = !likedByMe,
+        quantityOfLikes = quantityOfLikes + ( if (likedByMe) -1 else 1 )
+    )
+    is VideoPost -> copy (
+        likedByMe = !likedByMe,
+        quantityOfLikes = quantityOfLikes + ( if (likedByMe) -1 else 1 )
+    )
+    else -> this
+}
+
+fun Post.toggleComments(): Post = when (this) {
+    is SimplePost -> copy (
+        commentedByMe = !commentedByMe,
+        quantityOfComments = quantityOfComments + ( if (commentedByMe) -1 else 1 )
+    )
+    is EventPost -> copy (
+        commentedByMe = !commentedByMe,
+        quantityOfComments = quantityOfComments + ( if (commentedByMe) -1 else 1 )
+    )
+    is VideoPost -> copy (
+        commentedByMe = !commentedByMe,
+        quantityOfComments = quantityOfComments + ( if (commentedByMe) -1 else 1 )
+    )
+    else -> this
+}
+
+fun Post.toggleShares(): Post = when (this) {
+    is SimplePost -> copy (
+        sharedByMe = !sharedByMe,
+        quantityOfShares = quantityOfShares + ( if (sharedByMe) -1 else 1 )
+    )
+    is EventPost -> copy (
+        sharedByMe = !sharedByMe,
+        quantityOfShares = quantityOfShares + ( if (sharedByMe) -1 else 1 )
+    )
+    is VideoPost -> copy (
+        sharedByMe = !sharedByMe,
+        quantityOfShares = quantityOfShares + ( if (sharedByMe) -1 else 1 )
+    )
+    else -> this
 }
 
 data class Coordinates(
@@ -33,63 +67,41 @@ data class Coordinates(
     val lng: Float = 0F
 )
 
-class EventPost(
-    author: String = "",
-    content: String = "",
-    createdTimeStamp: Int = 0,
-    likedByMe: Boolean = false,
-    commentedByMe: Boolean = false,
-    sharedByMe: Boolean = false,
-    quantityOfLikes: Int = 0,
-    quantityOfComments: Int = 0,
-    quantityOfShares: Int = 0,
-    address: String = "",
-    place: Coordinates = Coordinates(0F, 0F)
-): Post(author, content, createdTimeStamp, likedByMe, commentedByMe, sharedByMe, quantityOfLikes, quantityOfComments, quantityOfShares){
-    val address = address
-    val place = place
-    fun copy(
-        author: String = this.author,
-        content: String = this.content,
-        createdTimeStamp: Int = this.createdTimeStamp,
-        likedByMe: Boolean = this.likedByMe,
-        commentedByMe: Boolean = this.commentedByMe,
-        sharedByMe: Boolean = this.sharedByMe,
-        quantityOfLikes: Int = this.quantityOfLikes,
-        quantityOfComments: Int = this.quantityOfComments,
-        quantityOfShares: Int = this.quantityOfShares,
-        address: String = this.address,
-        place: Coordinates = this.place
-    ): EventPost{
-        return EventPost(author, content, createdTimeStamp, likedByMe, commentedByMe, sharedByMe, quantityOfLikes, quantityOfComments, quantityOfShares, address, place)
-    }
-}
+data class SimplePost(
+    override val author: String = "",
+    override val content: String = "",
+    override val createdTimeStamp: Int = 0,
+    override val likedByMe: Boolean = false,
+    override val commentedByMe: Boolean = false,
+    override val sharedByMe: Boolean = false,
+    override val quantityOfLikes: Int = 0,
+    override val quantityOfComments: Int = 0,
+    override val quantityOfShares: Int = 0
+): Post
 
-class VideoPost(
-    author: String,
-    content: String,
-    createdTimeStamp: Int,
-    likedByMe: Boolean,
-    commentedByMe: Boolean,
-    sharedByMe: Boolean,
-    quantityOfLikes: Int,
-    quantityOfComments: Int,
-    quantityOfShares: Int,
-    videoUrl: String
-): Post(author, content, createdTimeStamp, likedByMe, commentedByMe, sharedByMe, quantityOfLikes, quantityOfComments, quantityOfShares){
-    val videoUrl = videoUrl
-    fun copy(
-        author: String = this.author,
-        content: String = this.content,
-        createdTimeStamp: Int = this.createdTimeStamp,
-        likedByMe: Boolean = this.likedByMe,
-        commentedByMe: Boolean = this.commentedByMe,
-        sharedByMe: Boolean = this.sharedByMe,
-        quantityOfLikes: Int = this.quantityOfLikes,
-        quantityOfComments: Int = this.quantityOfComments,
-        quantityOfShares: Int = this.quantityOfShares,
-        videoUrl: String = this.videoUrl
-    ): VideoPost{
-        return VideoPost(author, content, createdTimeStamp, likedByMe, commentedByMe, sharedByMe, quantityOfLikes, quantityOfComments, quantityOfShares, videoUrl)
-    }
-}
+data class EventPost(
+    override val author: String = "",
+    override val content: String = "",
+    override val createdTimeStamp: Int = 0,
+    override val likedByMe: Boolean = false,
+    override val commentedByMe: Boolean = false,
+    override val sharedByMe: Boolean = false,
+    override val quantityOfLikes: Int = 0,
+    override val quantityOfComments: Int = 0,
+    override val quantityOfShares: Int = 0,
+    val address: String,
+    val place: Coordinates
+): Post
+
+data class VideoPost(
+    override val author: String = "",
+    override val content: String = "",
+    override val createdTimeStamp: Int = 0,
+    override val likedByMe: Boolean = false,
+    override val commentedByMe: Boolean = false,
+    override val sharedByMe: Boolean = false,
+    override val quantityOfLikes: Int = 0,
+    override val quantityOfComments: Int = 0,
+    override val quantityOfShares: Int = 0,
+    val videoUrl: String
+): Post

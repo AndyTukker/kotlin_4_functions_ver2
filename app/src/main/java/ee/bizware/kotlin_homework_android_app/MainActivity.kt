@@ -11,26 +11,32 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private var post: Post = Post()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        post = EventPost(
+    private val postArray = arrayOf(
+        SimplePost(
+            author = "Kerry Tukker",
+            content = "Our new online shop postcards.ee is open now!",
+            createdTimeStamp = 1567780000,
+            likedByMe = true,
+            commentedByMe = true,
+            sharedByMe = true,
+            quantityOfLikes = 23,
+            quantityOfComments = 12,
+            quantityOfShares = 9
+        ),
+        EventPost(
             author = "Братья Гамбс",
             content = "Этим полукреслом мастер Гамбс начинает новую партию мебели",
             createdTimeStamp = 1567770000,
             likedByMe = true,
             commentedByMe = true,
             sharedByMe = true,
-            quantityOfLikes = 1,
+            quantityOfLikes = 7,
             quantityOfComments = 1,
             quantityOfShares = 1,
             address = "Mulla 1, 10611 Tallinn",
             place = Coordinates(59.434988F, 24.717758F)
-        )
-/*
-        post = VideoPost(
+        ),
+        VideoPost(
             author = "Собачка Лотте",
             content = "Новый трейлер",
             createdTimeStamp = 1567770000,
@@ -39,39 +45,51 @@ class MainActivity : AppCompatActivity() {
             quantityOfComments = 12,
             videoUrl = "https://youtu.be/NApLB4AhaLM"
         )
-*/
+    )
+    private var currentIndex = 0
+    private var post = postArray[currentIndex]
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_main)
         updatePost()
 
-        //
-        likeButton.setOnClickListener{
-            post = post.copy(
-                likedByMe = !post.likedByMe,
-                quantityOfLikes = post.quantityOfLikes + ( if (post.likedByMe) -1 else 1 )
-            )
+        nextPost.setOnClickListener {
+            currentIndex = if ( currentIndex == (postArray.size-1) ) 0 else currentIndex+1
+            post = postArray[currentIndex]
+            updatePost()
+        }
+
+        previousPost.setOnClickListener {
+            currentIndex = if ( currentIndex == 0 ) postArray.size-1 else currentIndex-1
+            post = postArray[currentIndex]
             updatePost()
         }
         //
+        likeButton.setOnClickListener{
+            post = post.toggleLikes()
+            postArray[currentIndex] = post
+            updatePost()
+        }
+        //
+
         commentButton.setOnClickListener{
-            post = post.copy(
-                commentedByMe = !post.commentedByMe,
-                quantityOfComments = post.quantityOfComments + ( if (post.commentedByMe) -1 else 1 )
-            )
+            post = post.toggleComments()
+            postArray[currentIndex] = post
             updatePost()
         }
         //
         shareButton.setOnClickListener{
-            post = post.copy(
-                sharedByMe = !post.sharedByMe,
-                quantityOfShares = post.quantityOfShares + ( if (post.sharedByMe) -1 else 1 )
-            )
+            post = post.toggleShares()
+            postArray[currentIndex] = post
             updatePost()
         }
         //
         locationButton.setOnClickListener{
-            if ( post is EventPost) {
-                val lat = post.place.lat
-                val lng = post.place.lng
+            (post as? EventPost)?.run {
+                val lat = place.lat
+                val lng = place.lng
                 val intent = Intent().apply {
                     action = Intent.ACTION_VIEW
                     data = Uri.parse("geo:$lat,$lng")
@@ -81,8 +99,7 @@ class MainActivity : AppCompatActivity() {
         }
         //
         videoLogo.setOnClickListener{
-            if ( post is VideoPost ) {
-                val videoUrl = post.videoUrl
+            ( post as? VideoPost)?.run {
                 val intent = Intent().apply {
                     action = Intent.ACTION_VIEW
                     data = Uri.parse(videoUrl)
@@ -159,8 +176,8 @@ class MainActivity : AppCompatActivity() {
         author.text = post.author
         content.text = post.content
         //
-        locationButton.visibility = if ( (post is EventPost) && (post.address != "") ) View.VISIBLE else View.GONE
+        locationButton.visibility = if ( post is EventPost ) View.VISIBLE else View.GONE
         //
-        videoLogo.visibility = if ( (post is VideoPost) && ( post.videoUrl != "") ) View.VISIBLE else View.GONE
+        videoLogo.visibility = if ( post is VideoPost ) View.VISIBLE else View.GONE
     }
 }

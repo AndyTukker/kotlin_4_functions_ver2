@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Kotlin home works, Android app</string>
+    <string name="previousPost">previous post</string>
+    <string name="nextPost">next post</string>
 </resources>
